@@ -13,3 +13,13 @@ gcc launch.cpp -I $JAVA_HOME/include -I $JAVA_HOME/include/linux -L $JAVA_HOME/l
 LD_LIBRARY_PATH=$JAVA_HOME/lib/server ./a.out java/lang/Short
 ```
 The example loads specified class and tries to invoke its static method `test`.
+
+### Native Image Version
+
+There is a Maven project in this repository that provided access to JNI interface
+for GraalVM's `native-image` tool. Use:
+```bash
+$ mvn clean install -Pnative
+$ ./target/LaunchJdkViaJni java/lang/Integer
+```
+to load `java.lang.Integer` via JNI.
