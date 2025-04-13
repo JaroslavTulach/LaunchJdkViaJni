@@ -1,5 +1,6 @@
 package org.apidesign.demo.launchjdkviajni;
 
+import java.io.File;
 import org.apidesign.demo.launchjdkviajni.JvmInit.*;
 import org.graalvm.nativeimage.StackValue;
 import org.graalvm.nativeimage.UnmanagedMemory;
@@ -16,6 +17,18 @@ public final class LaunchJdkViaJni {
         if (args.length != 1) {
             System.err.println("Usage: <name_of_class_to_load>");
             System.exit(1);
+        }
+
+        var javaHome = System.getenv("JAVA_HOME");
+        if (javaHome == null) {
+            System.err.println("Specify JAVA_HOME environment variable");
+            System.exit(2);
+        }
+
+        var jvmLib = new File(new File(new File(new File(javaHome), "lib"), "server"), "libjvm.so");
+        if (!jvmLib.exists()) {
+            System.err.println("Cannot find " + jvmLib + " in JAVA_HOME directory");
+            System.exit(3);
         }
 
         var jvmArgs = StackValue.get(JavaVMInitArgs.class);
@@ -35,10 +48,18 @@ public final class LaunchJdkViaJni {
         var javaVM = StackValue.get(JvmInit.JNIJavaVM.class);
         JNI.JNIEnvPointer envPtr = UnmanagedMemory.calloc(4096);
 
-        int res = JvmInit.JNI_CreateJavaVM(javaVM, envPtr, jvmArgs);
-        System.err.println("result " + res);
+        try (
+            var libPath = CTypeConversion.toCString(jvmLib.getPath());
+            var createJvm = CTypeConversion.toCString("JNI_CreateJavaVM")
+        ) {
+            var jvmSo = Dlfcn.dlopen(libPath.get(), Dlfcn.RTLD_NOW());
+            System.err.println("jvm: " + jvmSo.rawValue());
+            JNICreateJavaVMPointer cStringCreateJvm = Dlfcn.dlsym(jvmSo, createJvm.get());
+            System.err.println("name: " + cStringCreateJvm.rawValue());
+            int res = cStringCreateJvm.call(javaVM, envPtr, jvmArgs);
+            System.err.println("result " + res);
+        }
 
-        
         System.err.println("       ignore  " + jvmArgs.ignoreUnrecognized());
         System.err.println("       nOption:" + jvmArgs.nOptions());
         System.err.println("       options:" + jvmArgs.options().rawValue());

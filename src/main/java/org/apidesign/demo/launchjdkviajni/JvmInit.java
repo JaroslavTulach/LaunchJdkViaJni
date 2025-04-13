@@ -2,6 +2,8 @@ package org.apidesign.demo.launchjdkviajni;
 
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
+import org.graalvm.nativeimage.c.function.CFunctionPointer;
+import org.graalvm.nativeimage.c.function.InvokeCFunctionPointer;
 import org.graalvm.nativeimage.c.struct.CField;
 import org.graalvm.nativeimage.c.struct.CPointerTo;
 import org.graalvm.nativeimage.c.struct.CStruct;
@@ -60,9 +62,13 @@ typedef struct JavaVMInitArgs {
     _JNI_IMPORT_OR_EXPORT_ jint JNICALL
     JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args);
     */
-    @CFunction
-    static native int JNI_CreateJavaVM(JNIJavaVM jvm, JNI.JNIEnvPointer env, JavaVMInitArgs vmArgs);
+//    @CFunction
+//    static native int JNI_CreateJavaVM(JNIJavaVM jvm, JNI.JNIEnvPointer env, JavaVMInitArgs vmArgs);
 
+    public interface JNICreateJavaVMPointer extends CFunctionPointer {
+        @InvokeCFunctionPointer
+        int call(JNIJavaVM jvmptr, JNI.JNIEnvPointer env, JavaVMInitArgs args);
+    }
 
     @CStruct(value = "JavaVM_", addStructKeyword = true)
     public interface JNIJavaVM extends PointerBase {
