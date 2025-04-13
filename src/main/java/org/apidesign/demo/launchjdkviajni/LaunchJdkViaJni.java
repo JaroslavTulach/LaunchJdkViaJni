@@ -1,13 +1,12 @@
 package org.apidesign.demo.launchjdkviajni;
 
 import java.io.File;
-import org.apidesign.demo.launchjdkviajni.JvmInit.*;
+
+import org.apidesign.demo.launchjdkviajni.JvmInit.JNICreateJavaVMPointer;
+import org.apidesign.demo.launchjdkviajni.JvmInit.JavaVMInitArgs;
 import org.graalvm.nativeimage.StackValue;
 import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
-import org.graalvm.word.Pointer;
-import org.graalvm.word.PointerBase;
-import org.graalvm.word.WordFactory;
 
 public final class LaunchJdkViaJni {
     private LaunchJdkViaJni() {
@@ -25,7 +24,7 @@ public final class LaunchJdkViaJni {
             System.exit(2);
         }
 
-        var jvmLib = new File(new File(new File(new File(javaHome), "lib"), "server"), "libjvm.so");
+        var jvmLib = findDynamicLibrary(javaHome);
         if (!jvmLib.exists()) {
             System.err.println("Cannot find " + jvmLib + " in JAVA_HOME directory");
             System.exit(3);
@@ -96,5 +95,17 @@ public final class LaunchJdkViaJni {
             System.out.println("env: " + envPtr.rawValue());
         }
         */
+    }
+
+    private static File findDynamicLibrary(String javaHome) {
+        var libName = "libjvm.so";
+        if (System.getProperty("os.name").contains("Mac")) {
+            libName = "libjvm.dylib";
+        }
+        if (System.getProperty("os.name").contains("Windows")) {
+            libName = "jvm.dll";
+        }
+
+        return new File(new File(new File(new File(javaHome), "lib"), "server"), libName);
     }
 }
