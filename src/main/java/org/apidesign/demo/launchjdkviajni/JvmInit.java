@@ -7,7 +7,6 @@ import org.graalvm.nativeimage.c.function.InvokeCFunctionPointer;
 import org.graalvm.nativeimage.c.struct.CField;
 import org.graalvm.nativeimage.c.struct.CPointerTo;
 import org.graalvm.nativeimage.c.struct.CStruct;
-import org.graalvm.word.Pointer;
 import org.graalvm.word.PointerBase;
 
 @CContext(JvmDirectives.class)
@@ -37,7 +36,10 @@ typedef struct JavaVMInitArgs {
         void nOptions(int n);
 
         @CField
-        Pointer options();
+        JNI.JNIJavaVMOption options();
+
+        @CField
+        void options(JNI.JNIJavaVMOption ptr);
 
         @CField
         boolean ignoreUnrecognized();
@@ -67,7 +69,7 @@ typedef struct JavaVMInitArgs {
 
     public interface JNICreateJavaVMPointer extends CFunctionPointer {
         @InvokeCFunctionPointer
-        int call(JNIJavaVM jvmptr, JNI.JNIEnvPointer env, JavaVMInitArgs args);
+        int call(JNIJavaVMPointer jvmptr, JNI.JNIEnvPointer env, JavaVMInitArgs args);
     }
 
     @CStruct(value = "JavaVM_", addStructKeyword = true)
@@ -79,7 +81,7 @@ typedef struct JavaVMInitArgs {
         @CField(value = "functions")
         public void setFunctions(JNI.JNIInvokeInterface fns);
     }
-    /*
+
     @CPointerTo(JNIJavaVM.class)
     public interface JNIJavaVMPointer extends PointerBase {
 
@@ -91,5 +93,4 @@ typedef struct JavaVMInitArgs {
 
         void write(int index, JNIJavaVM value);
     }
-    */
 }

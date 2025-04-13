@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import org.graalvm.nativeimage.c.CContext;
 
 final class JvmDirectives implements CContext.Directives {
@@ -33,7 +34,7 @@ final class JvmDirectives implements CContext.Directives {
     @Override
     public List<String> getLibraryPaths() {
         var jdk = new File(System.getProperty("java.home"));
-        var lib = new File(jdk, "lib");
+        var lib = new File(jdk, "bin");
         var server = new File(lib, "server");
         return List.of(server.getPath());
     }

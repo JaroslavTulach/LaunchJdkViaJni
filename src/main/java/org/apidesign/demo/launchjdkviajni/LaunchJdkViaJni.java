@@ -5,7 +5,6 @@ import java.io.File;
 import org.apidesign.demo.launchjdkviajni.JvmInit.JNICreateJavaVMPointer;
 import org.apidesign.demo.launchjdkviajni.JvmInit.JavaVMInitArgs;
 import org.graalvm.nativeimage.StackValue;
-import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 
 public final class LaunchJdkViaJni {
@@ -31,6 +30,9 @@ public final class LaunchJdkViaJni {
         }
 
         var jvmArgs = StackValue.get(JavaVMInitArgs.class);
+        jvmArgs.nOptions(0);
+        var options = StackValue.get(10, JNI.JNIJavaVMOption.class);
+        jvmArgs.options(options);
         System.err.println("empty: " + jvmArgs.version());
         jvmArgs.version(JNI.JNI_VERSION_1_1());
         System.err.println("version is " + jvmArgs.version());
@@ -44,18 +46,23 @@ public final class LaunchJdkViaJni {
         jvmArgs.nOptions(0);
         jvmArgs.ignoreUnrecognized(false);
 
-        var javaVM = StackValue.get(JvmInit.JNIJavaVM.class);
-        JNI.JNIEnvPointer envPtr = UnmanagedMemory.calloc(4096);
+        var jvmPtr = StackValue.get(JvmInit.JNIJavaVMPointer.class);
+        var envPtr = StackValue.get(JNI.JNIEnvPointer.class);
 
         try (
             var libPath = CTypeConversion.toCString(jvmLib.getPath());
             var createJvm = CTypeConversion.toCString("JNI_CreateJavaVM")
         ) {
-            var jvmSo = Dlfcn.dlopen(libPath.get(), Dlfcn.RTLD_NOW());
-            System.err.println("jvm: " + jvmSo.rawValue());
-            JNICreateJavaVMPointer cStringCreateJvm = Dlfcn.dlsym(jvmSo, createJvm.get());
-            System.err.println("name: " + cStringCreateJvm.rawValue());
-            int res = cStringCreateJvm.call(javaVM, envPtr, jvmArgs);
+            var jvmSo = Dll.LoadLibraryA(libPath.get());
+            System.err.println("jvmdll: " + jvmSo.rawValue());
+            System.err.println("    nn: " + jvmSo.isNonNull());
+            JNICreateJavaVMPointer cStringCreateJvm = Dll.GetProcAddress(jvmSo, createJvm.get());
+            System.err.println("symbol name: " + cStringCreateJvm.rawValue());
+            System.err.println("    nn: " + cStringCreateJvm.isNonNull());
+            System.err.println("jvmPtr: " + jvmPtr.rawValue());
+            System.err.println("envPtr: " + envPtr.rawValue());
+            System.err.println("jvmArg: " + jvmArgs.rawValue());
+            int res = cStringCreateJvm.call(jvmPtr, envPtr, jvmArgs);
             System.err.println("result " + res);
         }
 
@@ -103,7 +110,7 @@ public final class LaunchJdkViaJni {
             libName = "libjvm.dylib";
         }
         if (System.getProperty("os.name").contains("Windows")) {
-            libName = "jvm.dll";
+            return new File(new File(new File(new File(javaHome), "bin"), "server"), "jvm.dll");
         }
 
         return new File(new File(new File(new File(javaHome), "lib"), "server"), libName);

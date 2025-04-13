@@ -25,4 +25,10 @@ $ ./target/LaunchJdkViaJni java/lang/Short
 ...
 clazz: 107175425579104
 ```
-to load any JVM class via JNI.
+to load any JVM class via JNI. The same code works on Mac and with a little bit
+of tweaks it could work on Windows as well:
+```
+LaunchJdkViaJni> .\target\LaunchJdkViaJni.exe java/lang/Short -XX:-InstallSegfaultHandler
+...
+clazz: 2183191488672
+```
