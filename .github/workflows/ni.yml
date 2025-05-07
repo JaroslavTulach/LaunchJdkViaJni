@@ -1,0 +1,24 @@
+name: Verify GraalVM Native Image builds
+on: [push, pull_request]
+jobs:
+  build:
+    name: LaunchJdkViaJni ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        jdk: [21, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ matrix.jdk }}
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      - name: Build and run HelloWorld.java
+        run: |
+          mvn -Pnative install
+      
