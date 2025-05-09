@@ -1,5 +1,5 @@
 name: Verify GraalVM Native Image builds
-on: [push, pull_request]
+on: [push]
 jobs:
   build:
     name: GraalVM ${{matrix.jdk}} on ${{ matrix.os }}
@@ -18,7 +18,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
-      - name: Build and run HelloWorld.java
+      - name: Build .exe file
         run: |
           mvn -Pnative install
-      
+
+      - name: Test .ext file
+        run: |
+          .\target\LaunchJdkViaJni.exe java/lang/Short

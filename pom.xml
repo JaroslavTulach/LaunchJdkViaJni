@@ -41,6 +41,7 @@
                             <mainClass>${exec.mainClass}</mainClass>
                             <buildArgs>
                                 <arg>-Ob</arg>
+                                <arg>-R:-InstallSegfaultHandler</arg>
                                 <!--
                                 <arg>-H:-JNIExportSymbols</arg>
                                 -->
