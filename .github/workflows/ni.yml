@@ -1,5 +1,5 @@
 name: Verify GraalVM Native Image builds
-on: [push, pull_request]
+on: [push]
 jobs:
   build:
     name: GraalVM ${{matrix.jdk}} on ${{ matrix.os }}
