@@ -27,11 +27,6 @@ final class JvmDirectives implements CContext.Directives {
     }
 
     @Override
-    public List<String> getLibraries() {
-        return List.of("jvm");
-    }
-
-    @Override
     public List<String> getLibraryPaths() {
         var jdk = new File(System.getProperty("java.home"));
         var lib = new File(jdk, "bin");
