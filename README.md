@@ -1,18 +1,11 @@
-# Launch JDK via JNI
+# Launch JDK via JNI from Native Image
 
-This project investigates how to launch a JVM inside of a running executable. Useful for
-embedding JVM into native image compiled application.
+[![CI](https://github.com/JaroslavTulach/LaunchJdkViaJni/actions/workflows/ni.yml/badge.svg)](https://github.com/JaroslavTulach/LaunchJdkViaJni/actions/workflows/ni.yml)
 
-### Plain C Version
+This project investigates how to launch a JVM inside of a running _native image_ executable. 
+Useful for embedding JVM into _native image_ compiled application. Most of the problems
+are related to launching on Windows, so this project run _Windows CI_ pipeline.
 
-First of all, let's perform the lauching from inside of C application. There is a lot of
-tutorials to do so and having it working proofs we are on the right track:
-```bash
-$ export JAVA_HOME=/graalvm-jdk-24+36.1/
-$ gcc src/main/c/launch.cpp -I $JAVA_HOME/include -I $JAVA_HOME/include/linux -L $JAVA_HOME/lib/server/ -l jvm
-$ LD_LIBRARY_PATH=$JAVA_HOME/lib/server ./a.out java/lang/Short
-```
-The example loads specified class and tries to invoke its static method `test`.
 
 ### Native Image Version
 
@@ -32,3 +25,15 @@ LaunchJdkViaJni> .\target\LaunchJdkViaJni.exe java/lang/Short -XX:-InstallSegfau
 ...
 clazz: 2183191488672
 ```
+
+
+### Original C Version
+
+When it doubts about _native image_ it is useful to return back to lauching from inside of plain old C application.
+There is a lot of tutorials to do so and having it working proofs we are on the right track:
+```bash
+$ export JAVA_HOME=/graalvm-jdk-24+36.1/
+$ gcc src/main/c/launch.cpp -I $JAVA_HOME/include -I $JAVA_HOME/include/linux -L $JAVA_HOME/lib/server/ -l jvm
+$ LD_LIBRARY_PATH=$JAVA_HOME/lib/server ./a.out java/lang/Short
+```
+The example loads specified class and tries to invoke its static method `test`.
