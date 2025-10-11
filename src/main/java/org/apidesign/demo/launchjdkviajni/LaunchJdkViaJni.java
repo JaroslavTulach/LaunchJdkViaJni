@@ -9,6 +9,7 @@ import org.apidesign.demo.launchjdkviajni.JvmInit.JNICreateJavaVMPointer;
 import org.apidesign.demo.launchjdkviajni.JvmInit.JavaVMInitArgs;
 import org.graalvm.nativeimage.StackValue;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
+import org.graalvm.word.WordFactory;
 
 public final class LaunchJdkViaJni {
     private LaunchJdkViaJni() {
@@ -24,8 +25,8 @@ public final class LaunchJdkViaJni {
     public static void main(String[] args) throws Exception {
         listS();
 
-        if (args.length != 1) {
-            System.err.println("Usage: <name_of_class_to_load>");
+        if (args.length == 0) {
+            System.err.println("Usage: <name_of_class_to_load> additional args");
             System.exit(1);
         }
 
@@ -85,31 +86,7 @@ public final class LaunchJdkViaJni {
         var env = envPtr.readJNIEnv();
         System.err.println("env: " + env.rawValue());
 
-        var findClassFn = env.getFunctions().getFindClass();
-        var staticMethodId = env.getFunctions().getGetStaticMethodID();
-        var callStaticVoidMethod = env.getFunctions().getCallStaticVoidMethodA();
-        var newArray = env.getFunctions().getNewObjectArray();
-
-        try (var nameHolder = CTypeConversion.toCString(args[0])) {
-            var clazz = findClassFn.call(env, nameHolder.get());
-
-            System.err.println("clazz: " + clazz.rawValue());
-
-
-            try (var methodHolder = CTypeConversion.toCString("test")) {
-                try (var sigHolder = CTypeConversion.toCString("(I)V")) {
-                    var methodId = staticMethodId.call(env, clazz, methodHolder.get(), sigHolder.get());
-
-                    System.err.println("methodId: " + methodId.rawValue());
-
-                    var params = StackValue.get(1, JNI.JValue.class);
-                    params.addressOf(0).setInt(42);
-                    callStaticVoidMethod.call(env, clazz, methodId, params);
-                    System.err.println("back in native code");
-                }
-            }
-        }
-
+        executeMain(env, args[0], args);
 
         /*
         var envPtr = StackValue.get(JNI.JNIEnvPointer.class);
@@ -144,5 +121,33 @@ public final class LaunchJdkViaJni {
         }
 
         return new File(new File(new File(new File(javaHome), "lib"), "server"), libName);
+    }
+
+    private static void executeMain(JNI.JNIEnv e, String classNameWithSlashes, String... args) {
+        try (
+            var className = CTypeConversion.toCString(classNameWithSlashes);
+            var mainName = CTypeConversion.toCString("main");
+            var stringName = CTypeConversion.toCString("java/lang/String");
+            var mainSig = CTypeConversion.toCString("([Ljava/lang/String;)V");
+        ) {
+            var fn = e.getFunctions();
+            var mainClazz = fn.getFindClass().call(e, className.get());
+            assert mainClazz.isNonNull() : "Class not found " + classNameWithSlashes;
+            var mainMethod = fn.getGetStaticMethodID().call(e, mainClazz, mainName.get(), mainSig.get());
+            assert mainMethod.isNonNull() : "main method found in " + classNameWithSlashes;
+            var stringClazz = fn.getFindClass().call(e, stringName.get());
+            var argsCopy
+                    = fn.getNewObjectArray().call(e, args.length, stringClazz, WordFactory.nullPointer());
+
+            for (var i = 0; i < args.length; i++) {
+                try (var ithArg = CTypeConversion.toCString(args[i]);) {
+                    var str = fn.getNewStringUTF().call(e, ithArg.get());
+                    fn.getSetObjectArrayElement().call(e, argsCopy, i, str);
+                }
+            }
+            var arg = StackValue.get(JNI.JValue.class);
+            arg.setJObject(argsCopy);
+            fn.getCallStaticVoidMethodA().call(e, mainClazz, mainMethod, arg);
+        }
     }
 }

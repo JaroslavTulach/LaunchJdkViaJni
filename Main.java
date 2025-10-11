@@ -2,11 +2,10 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 class Main {
-
-
-  public static void listS() throws IOException {
+  private static void listS() throws IOException {
       var sw = Path.of("s:\\windows");
       var real = sw.toRealPath();
       System.err.println("real path is : " + real + " on " + System.getProperty("java.vm.version"));
@@ -15,9 +14,9 @@ class Main {
       }
   }
 
-  public static void test(int n) throws Exception {
+  public static void main(String... args) throws Exception {
      System.err.println("Running with " + System.getProperty("java.version") + " at " + System.getProperty("java.home"));
      listS();
-     System.err.println("test invoked with " + n);
+     System.err.println("test invoked with " + Arrays.toString(args));
   }
 }
