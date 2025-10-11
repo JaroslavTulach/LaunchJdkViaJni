@@ -1,6 +1,9 @@
 package org.apidesign.demo.launchjdkviajni;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apidesign.demo.launchjdkviajni.JvmInit.JNICreateJavaVMPointer;
 import org.apidesign.demo.launchjdkviajni.JvmInit.JavaVMInitArgs;
@@ -10,8 +13,17 @@ import org.graalvm.nativeimage.c.type.CTypeConversion;
 public final class LaunchJdkViaJni {
     private LaunchJdkViaJni() {
     }
+  public static void listS() throws IOException {
+      var sw = Path.of("s:\\windows");
+      var real = sw.toRealPath();
+      System.err.println("real path is : " + real + " on " + System.getProperty("java.vm.version"));
+      for (var f : Files.list(real).toList()) {
+          System.err.println("  there is " + f.toRealPath());
+      }
+  }
+    public static void main(String[] args) throws Exception {
+        listS();
 
-    public static void main(String[] args) {
         if (args.length != 1) {
             System.err.println("Usage: <name_of_class_to_load>");
             System.exit(1);
@@ -74,12 +86,30 @@ public final class LaunchJdkViaJni {
         System.err.println("env: " + env.rawValue());
 
         var findClassFn = env.getFunctions().getFindClass();
+        var staticMethodId = env.getFunctions().getGetStaticMethodID();
+        var callStaticVoidMethod = env.getFunctions().getCallStaticVoidMethodA();
+        var newArray = env.getFunctions().getNewObjectArray();
 
         try (var nameHolder = CTypeConversion.toCString(args[0])) {
             var clazz = findClassFn.call(env, nameHolder.get());
 
             System.err.println("clazz: " + clazz.rawValue());
+
+
+            try (var methodHolder = CTypeConversion.toCString("test")) {
+                try (var sigHolder = CTypeConversion.toCString("(I)V")) {
+                    var methodId = staticMethodId.call(env, clazz, methodHolder.get(), sigHolder.get());
+
+                    System.err.println("methodId: " + methodId.rawValue());
+
+                    var params = StackValue.get(1, JNI.JValue.class);
+                    params.addressOf(0).setInt(42);
+                    callStaticVoidMethod.call(env, clazz, methodId, params);
+                    System.err.println("back in native code");
+                }
+            }
         }
+
 
         /*
         var envPtr = StackValue.get(JNI.JNIEnvPointer.class);
