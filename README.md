@@ -19,16 +19,26 @@ The example loads specified class and tries to invoke its static method `test`.
 There is a Maven project in this repository that provided access to JNI interface
 for GraalVM's `native-image` tool. Use:
 ```bash
-$ export JAVA_HOME=/graalvm-jdk-24+36.1/
+$ export JAVA_HOME=/graalvm-community-openjdk-25+37.1/
 $ mvn clean install -Pnative
-$ ./target/LaunchJdkViaJni java/lang/Short
+$ ./target/LaunchJdkViaJni org/apidesign/demo/launchjdkviajni/DumpDisk
 ...
-clazz: 107175425579104
+dumpC, AOT: true
+...
+dumpC, AOT: false
+...
+dumpC, AOT: true
+...
 ```
 to load any JVM class via JNI. The same code works on Mac and with a little bit
 of tweaks it could work on Windows as well:
 ```
-LaunchJdkViaJni> .\target\LaunchJdkViaJni.exe java/lang/Short -XX:-InstallSegfaultHandler
+LaunchJdkViaJni> .\target\LaunchJdkViaJni.exe org/apidesign/demo/launchjdkviajni/DumpDisk
 ...
-clazz: 2183191488672
+dumpC, AOT: true
+...
+dumpC, AOT: false
+...
+dumpC, AOT: true
+...
 ```

@@ -40,6 +40,7 @@
                         <configuration>
                             <mainClass>${exec.mainClass}</mainClass>
                             <buildArgs>
+                                <arg>-ea</arg>
                                 <arg>-Ob</arg>
                                 <arg>-R:-InstallSegfaultHandler</arg>
                                 <!--
