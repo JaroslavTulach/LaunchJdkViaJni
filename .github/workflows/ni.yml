@@ -23,6 +23,6 @@ jobs:
         run: |
           mvn -Pnative install
 
-      - name: Test .ext file
+      - name: Test .exe file
         run: |
           .\target\LaunchJdkViaJni.exe org/apidesign/demo/launchjdkviajni/DumpDisk
