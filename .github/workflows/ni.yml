@@ -5,6 +5,7 @@ jobs:
     name: GraalVM ${{matrix.jdk}} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest]
         jdk: [21, 24, 25]
