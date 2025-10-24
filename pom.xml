@@ -43,6 +43,7 @@
                                 <arg>-ea</arg>
                                 <arg>-Ob</arg>
                                 <arg>-R:-InstallSegfaultHandler</arg>
+                                <arg>-H:NativeLinkerOption=${basedir}/LaunchJdkViaJni.exp</arg>
                                 <!--
                                 <arg>-H:-JNIExportSymbols</arg>
                                 -->
