@@ -11,7 +11,10 @@ public final class LaunchJdkViaJni {
 
         if (args.length == 0) {
             System.err.println("Usage: <name_of_class_to_load> additional args");
-            System.exit(1);
+            var mainClass = "org/apidesign/demo/launchjdkviajni/DumpDisk";
+            System.err.println("Defaulting to " + mainClass + ". Press Enter to go on!");
+            System.in.read();
+            args = new String[] { mainClass };
         }
 
         var javaHomeEnv = System.getenv("JAVA_HOME");
